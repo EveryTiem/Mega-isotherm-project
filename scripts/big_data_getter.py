@@ -6,6 +6,7 @@ import csv
 ##########################################################################################
 ### Gets many adsorbent/adsorbate combinations at once                                 ###
 ### Can be edited to the user's purposes by changing the names in the nested for-loops ###
+### Comments in code are past edits and possible future updates                        ###
 ##########################################################################################
 
 # get list of adsorbents
@@ -19,7 +20,7 @@ adsorbate_json = json.load(urlopen("https://adsorbents.nist.gov/isodb/api/gases.
 item1 = json.load(urlopen("https://adsorbents.nist.gov/isodb/api/isotherms.json"))
 
 
-
+# User-input section (searches all combinations of adsorbents, adsorbates, temperatures, and units)
 for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']:
     for adsorbate1 in ['', 'N2', 'CO2', 'CH4', 'Ar', 'H2', 'H2O']:
         for adsorbate2 in ['', 'N2', 'CO2', 'CH4', 'Ar', 'H2', 'H2O']:
@@ -38,6 +39,7 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
 
                       #adsorbent = input("adsorbent >> ")
 
+                    # Finds the adsorbent's hashkey
                     for x in adsorbent_json:
                         if x['name'] == adsorbent or adsorbent in x['synonyms']:
                           adsorbent_hashkey = x['hashkey']
@@ -45,7 +47,8 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
 
                       #if adsorbent_hashkey == None:
                         #print("adsorbent not found")
-
+                    
+                    # Gets the number of adsorbates proposed
                     num_adsorbate = 1 if (adsorbate1 == '' or adsorbate2 == '') else 2
                     #while num_adsorbate == None:
                      # try:
@@ -53,6 +56,7 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
                      # except ValueError:
                     #    print("please input a valid integer")
 
+                    # List of adsorbates and their InChIKeys
                     adsorbate_InChIKey_list = []
                     adsorbate_list = []
 
@@ -62,6 +66,8 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
                       #while adsorbate_InChIKey == None:
 
                         #adsorbate = input("adsorbate >> ")
+                    
+                    # Adds adsorbates and InChIKeys to lists
                     if adsorbate1 != '':
                         for x in adsorbate_json:
                           if x['name'] == adsorbate1 or adsorbate1 in x['synonyms']:
@@ -95,6 +101,7 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
 
                     #ads_unit = input("adsorption units >> ")
 
+                    # Adds files to list if adsorbates and adsorbents match user input
                     # for each isotherm
                     for x in item1:
                       count = 0
@@ -105,6 +112,7 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
                       if count == num_adsorbate and x['filename'] not in file_list:
                         file_list.append(x['filename'])
 
+                    # Prints name of all files matching the adsorbate/adsorbent combination and adds files with the requested units to done_files
                     # for each isotherm
                     done_files = []
                     for filename in file_list:
@@ -120,11 +128,16 @@ for adsorbent in ['CuBTC', 'Zeolite 13X', 'MOF-1', 'UiO-66', 'Activated Carbon']
                             #for type in ['pressure', 'total_adsorption']:
                               #print(f"{type}: {file_['isotherm_data'][num][type]}")
                             # add data pt to list
-                            data.append((file_['isotherm_data'][num]['pressure'], file_['isotherm_data'][num]['species_data'][l]['composition'], file_['isotherm_data'][num]['species_data'][l]['adsorption'], adsorbate_list[l], filename))
-                            print((file_['isotherm_data'][num]['pressure'], file_['isotherm_data'][num]['species_data'][l]['adsorption'], adsorbate_list[l]))
+                            data.append((file_['isotherm_data'][num]['pressure'], 
+                                         file_['isotherm_data'][num]['species_data'][l]['composition'], 
+                                         file_['isotherm_data'][num]['species_data'][l]['adsorption'], 
+                                         adsorbate_list[l], filename))
+                            print((file_['isotherm_data'][num]['pressure'], 
+                                   file_['isotherm_data'][num]['species_data'][l]['adsorption'], 
+                                   adsorbate_list[l]))
 
                     adsorbate_str = ' '.join(adsorbate_list)
-
+                    # Creates a csv for an isotherm and writes the isotherm's data
                     with open(((adsorbate_str + ' ' + adsorbent + ' ' + str(temperature) + ' ' + ads_unit.replace('/', ' per ') + ".csv") if len(data) != 0 else ('ZZZEMPTY' + adsorbate_str + ' ' +adsorbent + ' ' + str(temperature) + ' ' + ads_unit.replace('/', ' per ') + ".csv")), 'w+') as out:
                         fieldnames = ['pressure', 'composition', 'Q', 'species', 'filename']
                         writer = csv.DictWriter(out, fieldnames=fieldnames)
